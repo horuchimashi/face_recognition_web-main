@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Data Management</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* General Body and Container Styling */
+        body {
+            background-color: #1a1a1a; /* Dark background */
+            color: #ffffff; /* White text */
+            font-family: 'Instrument Sans', sans-serif; /* A modern font */
+        }
+        .container {
+            max-width: 1200px; /* Adjust container width if needed */
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Header Styling */
+        h1 {
+            color: #ffffff;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        .subtitle {
+            color: #ccc;
+            font-size: 1rem;
+            margin-top: -15px;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        /* Card Styling */
+        .card {
+            background-color: #2c2c2c; /* Darker background for cards */
+            border: none; /* Remove default bootstrap border */
+            border-radius: 15px; /* Rounded corners */
+            padding: 25px; /* Internal spacing */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* More pronounced shadow */
+            height: 100%; /* Make cards fill height of column */
+            display: flex;
+            flex-direction: column;
+        }
+        .card-header {
+            background-color: transparent; /* Transparent header background */
+            border-bottom: none; /* No border at the bottom of the header */
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            color: #ffffff; /* White title text */
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .card-body {
+            flex-grow: 1; /* Allow card body to expand */
+            padding: 0; /* Reset default padding as card already has it */
+        }
+
+        /* Form Elements Styling */
+        .form-label {
+            color: #b0b0b0; /* Lighter grey for labels */
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .form-control {
+            background-color: #444444; /* Darker input background */
+            color: #ffffff; /* White text in inputs */
+            border: 1px solid #555555; /* Slightly lighter border */
+            border-radius: 8px;
+            padding: 4px 12px;
+            transition: all 0.2s ease-in-out;
+            font-size: 0.8rem;
+        }
+        .form-control::placeholder {
+            color: #888888; /* Placeholder color */
+        }
+        .form-control:focus {
+            background-color: #555555;
+            border-color: #6a5acd; /* Purple border on focus */
+            box-shadow: 0 0 0 0.25rem rgba(106, 90, 205, 0.25); /* Purple shadow on focus */
+            color: #ffffff;
+        }
+        .invalid-feedback {
+            color: #ff6b6b; /* Redder feedback color */
+        }
+
+        /* Custom File Input Styling */
+        .file-upload-container {
+            position: relative;
+            display: flex; /* Use flex for centering content */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            min-height: 360px; /* Adjusted height for better spacing */
+            border: 2px dashed #555555; /* Dashed border */
+            border-radius: 10px;
+            background-color: #444444; /* Match input background */
+            cursor: pointer;
+            overflow: hidden; /* Hide overflow of image preview */
+            transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+        }
+        .file-upload-container:hover {
+            border-color: #777777;
+            background-color: #4c4c4c;
+        }
+        .file-upload-container input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10; /* Ensure input is on top for clicks */
+        }
+        .file-upload-text {
+            color: #b0b0b0;
+            font-size: 1.15rem;
+            text-align: center;
+            pointer-events: none; /* Allow clicks to pass through to input */
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between text and icon */
+            z-index: 5; /* Ensure text is below image if both are present briefly */
+        }
+        .file-upload-text .fas { /* Use fas for general Font Awesome icons */
+            font-size: 1.8rem;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Contain the image within its bounds */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px; /* Match container border radius */
+            filter: brightness(0.9); /* Slight dimming */
+            z-index: 1; /* Image below the invisible input, above text */
+            transition: opacity 0.3s ease;
+        }
+        .image-preview.hidden {
+            display: none;
+            opacity: 0;
+        }
+        .image-preview:not(.hidden) {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Custom Button Styling */
+        .btn {
+            font-weight: bold;
+            padding: 12px 30px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-primary {
+            background-color: #008000; /* Green button for Add Face */
+            border-color: #008000;
+        }
+        .btn-primary:hover {
+            background-color: #006400; /* Darker green on hover */
+            border-color: #006400;
+            transform: translateY(-2px);
+        }
+
+        .btn-success-recognize { /* Custom class for the recognize button */
+            background-color: #6a5acd; /* Purple button for Recognize Face */
+            border-color: #6a5acd;
+        }
+        .btn-success-recognize:hover {
+            background-color: #5b4bab; /* Darker purple on hover */
+            border-color: #5b4bab;
+            transform: translateY(-2px);
+        }
+
+        /* Recognition Result Styling */
+        #recognitionResult {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #3a3a3a; /* Darker background for result area */
+            border-radius: 10px;
+            text-align: center; /* Center initial text and spinner */
+            color: #ffffff;
+            min-height: 100px; /* Ensure it doesn't collapse */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #recognitionResult .form-label {
+            width: 100%; /* Ensure label spans full width */
+            text-align: left; /* Align label to left */
+            margin-bottom: 15px;
+            color: #ffffff; /* Make this label white */
+        }
+        #recognitionResult p {
+            margin-bottom: 0.5rem; /* Adjust paragraph spacing */
+        }
+        .progress-container {
+            width: 100%;
+            margin-top: 15px;
+            background-color: #555555;
+            border-radius: 20px;
+            border: #fffffa 2px solid;
+            height: 30px; /* Slightly taller progress bar */
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ffffff;
+            position: relative;
+        }
+        .progress-bar-custom {
+            height: 100%;
+            background-color: #D3A248; /* Yellow for progress bar */
+            border-radius: 20px;
+            transition: width 0.6s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* Align text to the right within the bar */
+            padding-right: 10px;
+            box-sizing: border-box;
+            color: #222; /* Dark text on yellow bar */
+            font-size: 0.9rem;
+            color: #fff;
+        }
+        .progress-bar-text-left {
+            position: absolute;
+            left: 14px;
+            color: #fff; /* White text for the label */
+            z-index: 2; /* Ensure it's above the bar */
+            font-size: 1rem;
+        }
+        .spinner-border {
+            color: #6a5acd !important; /* Purple spinner */
+        }
+        .text-secondary {
+            color: #b0b0b0 !important; /* Lighter grey for secondary text */
+        }
+
+        /* Toast Container for bottom-right positioning */
+        .toast-container {
+            position: fixed;
+            bottom: 1.5rem; /* Increased spacing from bottom */
+            right: 1.5rem; /* Increased spacing from right */
+            z-index: 1080; /* Higher than modals if they exist */
+        }
+
+        /* Custom Toast Styling */
+        .toast {
+            background-color: #3a3a3a; /* Dark background for toast */
+            color: #ffffff; /* White text */
+            border: 1px solid #555555;
+            border-radius: 10px; /* Slightly more rounded */
+            padding: 15px;
+            font-size: 1.05rem;
+            min-width: 300px; /* Ensure enough width */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+        .toast .toast-header {
+            background-color: transparent;
+            border-bottom: none;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 0 0 10px 0; /* Adjust header padding */
+            font-size: 1.1rem;
+        }
+        .toast .toast-body {
+            padding: 0;
+            display: flex; /* Use flexbox for icon and text alignment */
+            align-items: center;
+        }
+        .toast .btn-close {
+            filter: invert(1); /* Make close button white */
+            padding: 0.5rem;
+            margin: -0.5rem -0.5rem -0.5rem auto; /* Adjust close button position */
+        }
+
+        /* Toast icons */
+        .toast-icon {
+            font-size: 2rem; /* Larger icon size */
+            margin-right: 15px; /* Space between icon and text */
+        }
+        .toast-icon.success {
+            color: #28a745; /* Green for success */
+        }
+        .toast-icon.danger {
+            color: #dc3545; /* Red for danger */
+        }
+        .toast-icon.warning {
+            color: #ffc107; /* Yellow for warning */
+        }
+        .toast-icon.info {
+            color: #17a2b8; /* Blue for info */
+        }
+    </style>
+</head>
+<body class="p-2">
+    <div class="container">
+        <h1 class="text-center">Студентко Студент Студентович</h1>
+        <p class="text-center subtitle">Система розпізнавання обличь</p>
+
+        <div class="row gx-4"> <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Додавання нових даних для розпізнавання</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="addFaceForm" action="/" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            <div class="mb-4">
+                                <label for="addName" class="form-label">Ім'я людини</label>
+                                <input type="text" name="name" class="form-control" id="addName" placeholder="Введіть ім'я для асоціації" required>
+                                <div class="invalid-feedback">Будь ласка, введіть ім'я.</div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="addImage" class="form-label">Зображення людини</label>
+                                <div class="file-upload-container">
+                                    <input type="file" name="image" id="addImage" accept="image/*" required>
+                                    <img class="image-preview hidden p-4" id="addPhoto" src="#" alt="Image preview"/>
+                                    <span class="file-upload-text">Додати фото <i class="fas fa-plus"></i></span>
+                                </div>
+                                <div class="invalid-feedback">Будь ласка, завантажте зображення.</div>
+                            </div>
+                            <div class="text-center mt-auto"> <button class="btn btn-primary w-100" type="submit">Додати дані для розпізнавання <i class="fas fa-plus"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Розпізнавання зображення</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="recognizeFaceForm" action="/recognize" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            <div class="mb-4">
+                                <label for="recognizeImage" class="form-label">Зображення людини</label>
+                                <div class="file-upload-container">
+                                    <input type="file" name="image" id="recognizeImage" accept="image/*" required>
+                                    <img class="image-preview hidden p-4" id="recognizePhoto" src="#" alt="Image preview"/>
+                                    <span class="file-upload-text">Додати фото <i class="fas fa-plus"></i></span>
+                                </div>
+                                <div class="invalid-feedback">Будь ласка, завантажте зображення для розпізнавання.</div>
+                            </div>
+                            <div class="text-center mt-auto"> <button class="btn btn-success-recognize w-100" type="submit">Розпізнати людину <i class="fas fa-user-lock"></i></button>
+                            </div>
+                        </form>
+                        <div id="recognitionResult" class="mt-4">
+                             <p class="form-label text-center">Дані розпізнавання</p>
+                             <p class="text-secondary text-center">Завантажте зображення для розпізнавання.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container">
+        </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Bootstrap form validation
+        (function () {
+            'use strict';
+            var forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+
+        function setupImagePreview(inputId, imgId) {
+            const input = document.getElementById(inputId);
+            const img = document.getElementById(imgId);
+            // Corrected: Get the parent container first
+            const fileUploadContainer = input.closest('.file-upload-container'); 
+            // Then find the span with the specific class within that container
+            const textSpan = fileUploadContainer.querySelector('.file-upload-text'); 
+
+            input.onchange = evt => {
+                const [file] = input.files;
+                if (file) {
+                    img.src = URL.createObjectURL(file);
+                    img.classList.remove('hidden'); // Show the image
+                    textSpan.style.display = 'none'; // Hide the "Додати фото +" text
+                } else {
+                    img.src = '#';
+                    img.classList.add('hidden'); // Hide if no file selected
+                    textSpan.style.display = 'flex'; // Show the text (use 'flex' because your CSS for .file-upload-text uses flex)
+                }
+            };
+
+            // Ensure both are set correctly on load
+            if (input.files.length === 0) { // If no file is pre-selected
+                img.classList.add('hidden');
+                textSpan.style.display = 'flex'; // Use 'flex' here too
+            }
+        }
+
+        setupImagePreview('addImage', 'addPhoto');
+        setupImagePreview('recognizeImage', 'recognizePhoto');
+
+        // Function to display flash messages as Toasts
+        function displayToastMessage(message, category) {
+            const toastContainer = document.querySelector('.toast-container');
+            const toastId = `toast-${Date.now()}`;
+            let iconClass = '';
+            let iconColorClass = '';
+            let titleText = '';
+
+            switch (category) {
+                case 'success':
+                    iconClass = 'fas fa-check-circle';
+                    iconColorClass = 'success';
+                    titleText = 'Успіх';
+                    break;
+                case 'danger':
+                    iconClass = 'fas fa-times-circle';
+                    iconColorClass = 'danger';
+                    titleText = 'Помилка';
+                    break;
+                case 'warning':
+                    iconClass = 'fas fa-exclamation-triangle';
+                    iconColorClass = 'warning';
+                    titleText = 'Попередження';
+                    break;
+                default:
+                    iconClass = 'fas fa-info-circle';
+                    iconColorClass = 'info';
+                    titleText = 'Інформація';
+            }
+
+            const toastHtml = `
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
+                    <div class="toast-header">
+                        <strong class="me-auto">${titleText}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        <i class="${iconClass} toast-icon ${iconColorClass}"></i>
+                        <div>${message}</div>
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+            const toastEl = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastEl, {
+                delay: 5000 // Display for 5 seconds
+            });
+            toast.show();
+
+            // Clean up toast element after it hides
+            toastEl.addEventListener('hidden.bs.toast', () => {
+                toastEl.remove();
+            });
+        }
+
+
+        // Handle Add Face Form Submission
+        document.getElementById('addFaceForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const form = event.target;
+            if (!form.checkValidity()) {
+                // If form is invalid, Bootstrap's validation will show feedback
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                // Assuming your backend responds with JSON, e.g., {'message': 'Face added!', 'category': 'success'}
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayToastMessage(result.message || 'Face data added successfully!', 'success');
+                    form.reset(); // Clear the form
+                    document.getElementById('addPhoto').src = '#';
+                    document.getElementById('addPhoto').classList.add('hidden');
+                    document.querySelector('#addFaceForm .file-upload-text').style.display = 'block';
+                    form.classList.remove('was-validated'); // Reset validation state
+                } else {
+                    displayToastMessage(result.message || 'Error adding face data.', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                displayToastMessage('An unexpected error occurred.', 'danger');
+            }
+        });
+
+        // Handle Recognize Face Form Submission
+        document.getElementById('recognizeFaceForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const form = event.target;
+            if (!form.checkValidity()) {
+                // If form is invalid, Bootstrap's validation will show feedback
+                return;
+            }
+
+            const formData = new FormData(form);
+            const recognitionResultDiv = document.getElementById('recognitionResult');
+            recognitionResultDiv.innerHTML = `
+                <p class="form-label text-center">Дані розпізнавання</p>
+                <div class="text-center mt-3">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-secondary mt-2">Обробка зображення...</p>
+                </div>
+            `; // Show loading message with spinner
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json(); // Assuming JSON response
+
+                if (response.ok) {
+                    if (result.name) {
+                        const confidence = parseFloat(result.confidence); // Confidence comes as a string like "84.00%"
+                        recognitionResultDiv.innerHTML = `
+                            <p class="form-label">Дані розпізнавання</p>
+                            <div class="progress-container">
+                                <span class="progress-bar-text-left">${result.name}</span>
+                                <div class="progress-bar-custom" style="width: ${confidence}%">
+                                    ${confidence.toFixed(0)}%
+                                </div>
+                            </div>
+                        `;
+                        displayToastMessage(result.message || `Face recognized as: ${result.name}`, 'success');
+                    } else {
+                        // If result.name is null/undefined (no face recognized)
+                        recognitionResultDiv.innerHTML = `
+                            <p class="form-label text-center">Дані розпізнавання</p>
+                            <p class="fw-bold text-warning">Невідоме обличчя.</p>
+                        `;
+                        displayToastMessage(result.message || 'No face recognized in the image.', 'warning');
+                    }
+                    form.reset(); // Clear the form
+                    document.getElementById('recognizePhoto').src = '#';
+                    document.getElementById('recognizePhoto').classList.add('hidden');
+                    document.querySelector('#recognizeFaceForm .file-upload-text').style.display = 'block';
+                    form.classList.remove('was-validated'); // Reset validation state
+                } else {
+                    // For errors, if a specific message is provided, use it. Otherwise, a generic one.
+                    const errorMessage = result.message || 'Розпізнавання не вдалося.';
+                    recognitionResultDiv.innerHTML = `
+                        <p class="form-label text-center">Дані розпізнавання</p>
+                        <p class="fw-bold text-danger">Помилка: ${errorMessage}</p>
+                    `;
+                    displayToastMessage(errorMessage, 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                recognitionResultDiv.innerHTML = `
+                    <p class="form-label text-center">Дані розпізнавання</p>
+                    <p class="fw-bold text-danger">Сталася несподівана помилка.</p>
+                `;
+                displayToastMessage('An unexpected error occurred during recognition.', 'danger');
+            }
+        });
+    </script>
+</body>
+</html>
